@@ -19,7 +19,7 @@ theme_set(theme_bw() + theme(legend.position = "bottom"))
 
 ##Problem 1 
 
-#### Loading data from B
+#### Loading data from BRFSS
 
 ```{r load_data}
 devtools::install_github("p8105/p8105.datasets", force = TRUE)
@@ -52,12 +52,15 @@ Connecticut, Florida, and North Carolina were observed in 7 locations or countie
 
 #### Spaghetti plot for number of locations 2002-10
 ```{r spaghetti_plot}
-brfss_smart2010_clean %>% 
+spag_brfss_plot =
+  brfss_smart2010_clean %>% 
   group_by(state, year) %>%
   summarize(distinct_counties = n_distinct(county)) %>% 
   ggplot(aes(x = year, y = distinct_counties, group = state)) +
-    geom_line(aes(color = state))
-
+    geom_line(aes(color = state))+
+  labs(title = "Counties observed per year by state", x = "Time (years)", y = "Number of counties") 
+  
+ggsave("spag_brfss_plot.pdf", spag_brfss_plot, width = 8, height = 10)
 ```
 
 #### Table showing proportion of excellent responses
