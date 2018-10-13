@@ -64,6 +64,7 @@ Connecticut, Florida, and North Carolina were observed in 7 locations or countie
 ```
 
 #### Table showing proportion of excellent responses for years 2002, 2006, and 2010 by NY counties
+
 ```{r table}
 brfss_smart2010_clean %>% 
   filter(state == "NY", year %in% c(2002, 2006, 2010), response == "Excellent") %>%
@@ -72,6 +73,20 @@ brfss_smart2010_clean %>%
   select(county, mean_excellent, sd_excellent) %>% 
   rename("Mean excellent response" = mean_excellent, "Standard deviation excellent response" = sd_excellent) %>% 
   knitr::kable()
+```
+
+```{r five_panel_plot}
+brfss_response_df=
+  brfss_smart2010_clean %>% 
+  group_by(state, year, response) %>% 
+  summarize(mean_response = mean(data_value))
+
+ggplot(brfss_response_df, aes(x = year, y = mean_response, color = state))+
+  geom_point(alpha = .5) +
+  facet_grid(.~response) +
+  labs( y = "Mean responses", x = "Time (year)") +
+  theme(legend.position = "none", panel.spacing = unit(2, "lines")) +
+  scale_x_continuous(breaks = c(2002, 2006, 2010))
 ```
 
 
