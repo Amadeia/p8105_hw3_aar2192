@@ -51,18 +51,27 @@ brfss_smart2010_clean %>%
 Connecticut, Florida, and North Carolina were observed in 7 locations or counties in 2002.
 
 #### Spaghetti plot for number of locations 2002-10
-```{r spaghetti_plot}
-spag_brfss_plot =
+```{r spag_plot}
   brfss_smart2010_clean %>% 
   group_by(state, year) %>%
   summarize(distinct_counties = n_distinct(county)) %>% 
   ggplot(aes(x = year, y = distinct_counties, group = state)) +
     geom_line(aes(color = state))+
-  labs(title = "Counties observed per year by state", x = "Time (years)", y = "Number of counties") 
+  labs(title = "Counties observed per year by state", x = "Time (years)", y = "Number of counties") +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
   
-ggsave("spag_brfss_plot.pdf", spag_brfss_plot, width = 8, height = 10)
+
 ```
 
-#### Table showing proportion of excellent responses
+#### Table showing proportion of excellent responses for years 2002, 2006, and 2010 by NY counties
+```{r table}
+brfss_smart2010_clean %>% 
+  filter(state == "NY", year %in% c(2002, 2006, 2010), response == "Excellent") %>%
+  group_by(county) %>% 
+  summarize(mean_excellent = mean(data_value), sd_excellent = sd(data_value)) %>% 
+  select(county, mean_excellent, sd_excellent) %>% 
+  rename("Mean excellent response" = mean_excellent, "Standard deviation excellent response" = sd_excellent) %>% 
+  knitr::kable()
+```
 
 
