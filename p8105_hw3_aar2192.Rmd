@@ -17,3 +17,40 @@ theme_set(theme_bw() + theme(legend.position = "bottom"))
 
 ```
 
+##Problem 1 
+
+#### Loading data from B
+
+```{r load_data}
+devtools::install_github("p8105/p8105.datasets", force = TRUE)
+library(p8105.datasets)
+data("brfss_smart2010")
+```
+
+#### Cleaning BRFSS datasest
+
+```{r clean}
+brfss_smart2010_clean =
+  brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  rename(state = locationabbr, county = locationdesc) %>% 
+  separate(county, into = c("trash", "county"), sep = " - ") %>% 
+  select(-trash) %>% 
+  filter(topic == "Overall Health") %>% 
+  mutate(response = factor(response, levels = c("Excellent", "Very good", "Good","Fair","Poor")))
+  
+```
+#### In 2002, which states were observed at 7 locations?
+```{r filter_states_2010}
+brfss_smart2010_clean %>% 
+  filter(year == 2002) %>%
+  group_by(state, year) %>%
+  summarize(distinct_states = n_distinct(county)) %>% 
+  filter(distinct_states==7)
+```
+Connecticut, Florida, and North Carolina were observed in 7 locations or counties in 2002.
+
+
+
+
+
