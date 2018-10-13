@@ -45,12 +45,21 @@ brfss_smart2010_clean =
 brfss_smart2010_clean %>% 
   filter(year == 2002) %>%
   group_by(state, year) %>%
-  summarize(distinct_states = n_distinct(county)) %>% 
-  filter(distinct_states==7)
+  summarize(distinct_counties = n_distinct(county)) %>% 
+  filter(distinct_counties==7)
 ```
 Connecticut, Florida, and North Carolina were observed in 7 locations or counties in 2002.
 
+#### Spaghetti plot for number of locations 2002-10
+```{r spaghetti_plot}
+brfss_smart2010_clean %>% 
+  group_by(state, year) %>%
+  summarize(distinct_counties = n_distinct(county)) %>% 
+  ggplot(aes(x = year, y = distinct_counties, group = state)) +
+    geom_line(aes(color = state))
 
+```
 
+#### Table showing proportion of excellent responses
 
 
