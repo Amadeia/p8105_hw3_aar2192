@@ -148,11 +148,15 @@ data_for_insta_plot =
 
 #### Table of most popular items for aisles: “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
 
-```{r}
+```{r instacart_table}
 instacart %>% 
   filter(aisle %in% c("baking ingredients", "dog food care", 
                       "packaged vegetables fruits")) %>%
-  group_by(aisle, product_name)
+  group_by(aisle, product_name) %>% 
+  summarize(product_amt = n()) %>% 
+  filter(min_rank(desc(product_amt)) < 2) %>% 
+  rename("product name" = product_name, "Total sold" = product_amt) %>% 
+  knitr::kable()
 ```
 
 
