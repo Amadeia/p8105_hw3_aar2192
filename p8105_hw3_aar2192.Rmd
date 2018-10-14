@@ -21,7 +21,7 @@ theme_set(theme_bw() + theme(legend.position = "bottom"))
 
 #### Loading data from BRFSS
 
-```{r load_data}
+```{r load_data, cache = TRUE}
 devtools::install_github("p8105/p8105.datasets", force = TRUE)
 library(p8105.datasets)
 data("brfss_smart2010")
@@ -29,7 +29,7 @@ data("brfss_smart2010")
 
 #### Cleaning BRFSS datasest
 
-```{r clean}
+```{r clean, cache = TRUE}
 brfss_smart2010_clean =
   brfss_smart2010 %>% 
   janitor::clean_names() %>% 
@@ -41,7 +41,7 @@ brfss_smart2010_clean =
   
 ```
 #### In 2002, which states were observed at 7 locations?
-```{r filter_states_2010}
+```{r filter_states_2010, cache = TRUE}
 brfss_smart2010_clean %>% 
   filter(year == 2002) %>%
   group_by(state, year) %>%
@@ -51,7 +51,7 @@ brfss_smart2010_clean %>%
 Connecticut, Florida, and North Carolina were observed in 7 locations or counties in 2002.
 
 #### Spaghetti plot for number of locations 2002-10
-```{r spag_plot}
+```{r spag_plot, cache = TRUE}
   brfss_smart2010_clean %>% 
   group_by(state, year) %>%
   summarize(distinct_counties = n_distinct(county)) %>% 
@@ -65,7 +65,7 @@ Connecticut, Florida, and North Carolina were observed in 7 locations or countie
 
 #### Table showing proportion of excellent responses for years 2002, 2006, and 2010 by NY counties
 
-```{r table}
+```{r table, cache = TRUE}
 brfss_smart2010_clean %>% 
   filter(state == "NY", year %in% c(2002, 2006, 2010), response == "Excellent") %>%
   group_by(county) %>% 
@@ -77,7 +77,7 @@ brfss_smart2010_clean %>%
 
 #### Five panel plot of distribution of responses over time
 
-```{r five_panel_plot}
+```{r five_panel_plot, cache = TRUE}
 brfss_response_df=
   brfss_smart2010_clean %>% 
   group_by(state, year, response) %>% 
@@ -94,7 +94,7 @@ ggplot(brfss_response_df, aes(x = year, y = mean_response, color = state))+
 
 #### Loading instacart data
 
-```{r load_instacart_data}
+```{r load_instacart_data, cache = TRUE}
 data("instacart")
 View(instacart)
 summary(unique(instacart$department))
@@ -126,7 +126,7 @@ instacart %>%
 There are 134 different aisles. The fresh vegetables aisle is the aisle where the most products are ordered from.
 
 #### Plot of items ordered by aisle
-```{r plot_products_ordered}
+```{r plot_products_ordered, cache = TRUE}
 data_for_insta_plot =
   instacart %>% 
   group_by (aisle, department) %>% 
@@ -148,7 +148,7 @@ data_for_insta_plot =
 
 #### Table of most popular items for aisles: “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
 
-```{r instacart_table}
+```{r instacart_table, cache = TRUE}
 instacart %>% 
   filter(aisle %in% c("baking ingredients", "dog food care", 
                       "packaged vegetables fruits")) %>%
@@ -159,4 +159,16 @@ instacart %>%
   knitr::kable()
 ```
 
+#### Table showing mean hour of day for pink lady apples and coffee ice cream
+
+```{r table_insta_apples}
+  instacart %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+  group_by(product_name,order_dow) %>% 
+  summarize(mean_hour_dow = round(mean(order_hour_of_day))) %>% 
+  spread(key = order_dow, value = mean_hour_dow) %>% 
+  rename("Product" = product_name, "Sun" = '0', "Mon" = '1', "Tues" = '2', "Wed" = '3', "Thurs" = '4', "Fri" = '5', "Sat" = '6') %>%
+  knitr::kable()
+  
+```
 
