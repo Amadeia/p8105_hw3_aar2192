@@ -75,6 +75,8 @@ brfss_smart2010_clean %>%
   knitr::kable()
 ```
 
+#### Five panel plot of distribution of responses over time
+
 ```{r five_panel_plot}
 brfss_response_df=
   brfss_smart2010_clean %>% 
@@ -87,6 +89,70 @@ ggplot(brfss_response_df, aes(x = year, y = mean_response, color = state))+
   labs( y = "Mean responses", x = "Time (year)") +
   theme(legend.position = "none", panel.spacing = unit(2, "lines")) +
   scale_x_continuous(breaks = c(2002, 2006, 2010))
+```
+##Problem 2
+
+#### Loading instacart data
+
+```{r load_instacart_data}
+data("instacart")
+View(instacart)
+summary(unique(instacart$department))
+summary(unique(instacart$aisle))
+summary(unique(instacart$product_name))
+summary(is.na(instacart))
+summarize(instacart, mean(days_since_prior_order))
+```
+
+#### Describing the instacart data
+
+The dataframe is in tibble format. There are 1,384,617 rows and 15 columns (variables) in the instacart dataset. The variables are listed as orded_id, product_id, add_to_cart_order, reordered, user_id, eval_set, order_number, order_dow, order_hour_of_day, days_since_prior_order, product_name, aisle_id, department_id, aisle, and department. 
+
+Most likely the key variables are department, aisle, order_hour_of_day, product_name. 
+This would be because we might be interested in knowing what department and in what aisle are most products found. Then, we would want to know what are the most bought items, and at what time of the day do customers shop.
+
+There are 21 departments, 134 aisles, and 39123 different product_names. The mean number of days since prior order is 17.1 days. There doesn't appear to be any missing data. 
+
+#### How many aisles are there, and which aisles are the most items ordered from?
+```{r aisles_number}
+
+n_distinct(instacart$aisle)
+
+instacart %>% 
+  group_by(aisle) %>%
+  summarize(number_products = n()) %>% 
+  arrange(min_rank(desc(number_products)))
+```
+There are 134 different aisles. The fresh vegetables aisle is the aisle where the most products are ordered from.
+
+#### Plot of items ordered by aisle
+```{r plot_products_ordered}
+data_for_insta_plot =
+  instacart %>% 
+  group_by (aisle, department) %>% 
+  summarize(number_products = n()) %>%
+  arrange(department)
+
+  data_for_insta_plot$aisle =
+    factor(data_for_insta_plot$aisle, levels = unique(data_for_insta_plot$aisle))
+  
+  data_for_insta_plot %>% 
+  ggplot(aes(x = aisle, y = number_products)) + 
+  geom_point(aes(color = department)) +
+  labs(title = "Products ordered per aisle within departments",
+       y = "Products ordered", x = "Aisles") +
+  scale_x_discrete(breaks = NULL) +
+  theme(plot.title = element_text(hjust = 0.5))
+  
+```
+
+#### Table of most popular items for aisles: “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
+
+```{r}
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", 
+                      "packaged vegetables fruits")) %>%
+  group_by(aisle, product_name)
 ```
 
 
