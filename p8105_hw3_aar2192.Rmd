@@ -21,7 +21,7 @@ theme_set(theme_bw() + theme(legend.position = "bottom"))
 
 #### Loading data from BRFSS
 
-```{r load_data, cache = TRUE}
+```{r load_data}
 devtools::install_github("p8105/p8105.datasets", force = TRUE)
 library(p8105.datasets)
 data("brfss_smart2010")
@@ -29,7 +29,7 @@ data("brfss_smart2010")
 
 #### Cleaning BRFSS datasest
 
-```{r clean, cache = TRUE}
+```{r clean}
 brfss_smart2010_clean =
   brfss_smart2010 %>% 
   janitor::clean_names() %>% 
@@ -41,7 +41,7 @@ brfss_smart2010_clean =
   
 ```
 #### In 2002, which states were observed at 7 locations?
-```{r filter_states_2010, cache = TRUE}
+```{r filter_states_2010}
 brfss_smart2010_clean %>% 
   filter(year == 2002) %>%
   group_by(state, year) %>%
@@ -51,7 +51,7 @@ brfss_smart2010_clean %>%
 Connecticut, Florida, and North Carolina were observed in 7 locations or counties in 2002.
 
 #### Spaghetti plot for number of locations 2002-10
-```{r spag_plot, cache = TRUE}
+```{r spag_plot}
   brfss_smart2010_clean %>% 
   group_by(state, year) %>%
   summarize(distinct_counties = n_distinct(county)) %>% 
@@ -65,7 +65,7 @@ Connecticut, Florida, and North Carolina were observed in 7 locations or countie
 
 #### Table showing proportion of excellent responses for years 2002, 2006, and 2010 by NY counties
 
-```{r table, cache = TRUE}
+```{r table}
 brfss_smart2010_clean %>% 
   filter(state == "NY", year %in% c(2002, 2006, 2010), response == "Excellent") %>%
   group_by(county) %>% 
@@ -77,7 +77,7 @@ brfss_smart2010_clean %>%
 
 #### Five panel plot of distribution of responses over time
 
-```{r five_panel_plot, cache = TRUE}
+```{r five_panel_plot}
 brfss_response_df=
   brfss_smart2010_clean %>% 
   group_by(state, year, response) %>% 
@@ -90,11 +90,11 @@ ggplot(brfss_response_df, aes(x = year, y = mean_response, color = state))+
   theme(legend.position = "none", panel.spacing = unit(2, "lines")) +
   scale_x_continuous(breaks = c(2002, 2006, 2010))
 ```
-##Problem 2
+## Problem 2
 
 #### Loading instacart data
 
-```{r load_instacart_data, cache = TRUE}
+```{r load_instacart_data}
 data("instacart")
 View(instacart)
 summary(unique(instacart$department))
@@ -126,7 +126,7 @@ instacart %>%
 There are 134 different aisles. The fresh vegetables aisle is the aisle where the most products are ordered from.
 
 #### Plot of items ordered by aisle
-```{r plot_products_ordered, cache = TRUE}
+```{r plot_products_ordered}
 data_for_insta_plot =
   instacart %>% 
   group_by (aisle, department) %>% 
@@ -148,7 +148,7 @@ data_for_insta_plot =
 
 #### Table of most popular items for aisles: “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
 
-```{r instacart_table, cache = TRUE}
+```{r instacart_table}
 instacart %>% 
   filter(aisle %in% c("baking ingredients", "dog food care", 
                       "packaged vegetables fruits")) %>%
@@ -171,4 +171,94 @@ instacart %>%
   knitr::kable()
   
 ```
+
+## Problem 3
+
+```{r load_ny_noaa}
+data("ny_noaa")
+ny_noaa
+summary(is.na(ny_noaa))
+```
+
+#### Describing the ny_noaa data
+
+The ny_noaa dataset contains 2,595,176 rows (observations) and 7 columns (variables). The variables are id, date, prcp, snow, snwd, tmax, and tmin. Most likely the most important variables are date, tmax, tmin, prcp, and snow, as these indicate the date, maximum temperature, minimum temperature, precipitation, and snowfall. The dates range from 1981 to 2010. It appears that the variables prcp, snow, snwd, tmax, and tmin are missing data. In particular, prcp is missing 145838 values, snow is missing 381221 values, snwd is missing 591786 values, tmax is missing 1134358 values, and tmin is missing 1134420 balues.
+
+#### Data cleaning of ny_noaa data
+```{r clean_ny_noaa}
+  ny_noaa_clean = 
+  ny_noaa %>% 
+  mutate(
+    month = lubridate::floor_date(date, unit = "month"),
+    year = lubridate::floor_date(date, unit = "year"),
+    day = lubridate::floor_date(date, unit = "day")
+  ) %>% 
+  separate(year, into = c("year", "trash2", "trash3"), sep = "-") %>%
+  separate(month, into = c("trash", "month", "trash1"), sep = "-") %>% 
+  separate(day, into = c("trash4", "trash5", "day"), sep = "-") %>% 
+  select(-starts_with("trash")) %>% 
+  mutate(tmax = as.numeric(tmax), tmin = as.numeric(tmin)) %>% 
+  mutate( prcp = prcp/10, tmax = tmax/10, tmin = tmin/10)
+```
+
+#### For snowfall, what are the most commonly observed values? Why?
+```{r most_obs_snow}
+ny_noaa_clean %>% 
+  group_by(snow) %>% 
+  summarize(number_time_snow = n()) %>% 
+  arrange(min_rank(desc(number_time_snow)))
+
+ny_noaa_clean %>% 
+  group_by(snow, month) %>% 
+  summarize(number_time_snow = n()) %>% 
+  arrange(min_rank(desc(number_time_snow)))
+  
+```
+The most commonly observed values for snowfall are 0 and then 25. 0 is most common because it generally does not snow during the summer month and in fall.
+
+####  Two-panel plot average max temperature in January and in July in each station across years
+
+```{r noaa_plot}
+ny_noaa_clean %>% 
+  filter(month %in% c('01','07')) %>% 
+  mutate(year = as.numeric(year)) %>% 
+  group_by(id, month, year) %>%
+  summarize(avg_tmax = mean(tmax, na.rm = TRUE)) %>% 
+  ggplot(aes(x = year, y = avg_tmax)) +
+  geom_point(aes(color = id)) +
+  geom_smooth()+
+  facet_grid(.~month) +
+  labs( title = "Temperature in January and July by year", y = "Average Maximum Temperature", x = "Time (year)") +
+  theme(legend.position = "none", panel.spacing = unit(2, "lines"), plot.title = element_text(hjust = 0.5))
+
+```
+There seems to be a general trend for the average maximum temperature in January and July for the stations. During July over the years, the average temperature has remained at around 25º C, but for the month of January there have been cyclical fluctuations in average maximum temperatures over the years. For example, the temperature seems to peak almost every 10 years. There are not that many outliers, but there is a notable low average maximum temperature in July that occured between 1985 and 1990.
+
+#### Creating a two-panel plot where one is tmax vs. tmin and the other is the distribution of snowfall over the years
+
+```{r noaa_plot_2}
+devtools::install_github("thomasp85/patchwork")
+library(patchwork)
+library(hexbin)
+plot_tmax_tmin =
+  ny_noaa_clean %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_hex()+
+  labs(title = "tmax vs. tmin", x = "tmin (ºC)", y = "tmax (ºC)") +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+plot_snow_year = 
+  ny_noaa_clean %>% 
+  filter(0 < snow & snow < 100) %>%
+  ggplot(aes( x = year, y = snow)) +
+  geom_hex() + 
+  scale_x_discrete(breaks = c("1981","1990","2000","2010")) +
+  labs(title = "Snowfall by year", y = "snow fall (mm)")+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+plot_tmax_tmin + plot_snow_year
+```
+
+
+
 
